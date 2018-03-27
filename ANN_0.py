@@ -93,7 +93,7 @@ for k in range(K):
              '\tLinear regression adj R2 (test) = ',rsq)
     
     initialList = initialize(g, F.R.X, fns, dfns)
-    yHat, xList, hList, gList, fPs = initialList  
+    yHat, xList, hList, gList, zpList = initialList  
     
     
     #  Begin iterations 
@@ -102,15 +102,15 @@ for k in range(K):
     while it < 1500: 
         
         # Forward Propagation 
-        xList, fPs, yHat = forwardPropagation(xList, hList, fns, dfns, fPs)
+        xList, zpList, yHat = forwardPropagation(xList, hList, fns, dfns, zpList)
         dEdyhat = -2 * (Y - yHat) 
         
         # Compute gList 
         prevGradList = gList.copy()   
         if m > 1:
-            gList = gradComputerExample(hList, gList, xList, fPs, dEdyhat)    
+            gList = gradComputerExample(hList, gList, xList, zpList, dEdyhat)    
         else:
-            gList = gradComputerOne(hList, gList, xList, fPs, dEdyhat)    
+            gList = gradComputerOne(hList, gList, xList, zpList, dEdyhat)    
 
         ''' Compute the step sizes '''
         a = .01

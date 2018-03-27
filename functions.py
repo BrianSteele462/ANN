@@ -6,7 +6,7 @@ Created on Sun Mar 18 10:22:03 2018
 """
 import numpy as np
 from collections import namedtuple
-initialParameters = namedtuple('initialization','xList hList gradients fPs stepSizes norms vList iList')
+initialParameters = namedtuple('initialization','xList hList gradients zpList stepSizes norms vList iList')
 ''' ******************** Activation functions ****************************'''        
 
 def elu(x):
@@ -92,7 +92,7 @@ def dim(X):
 
 
     
-def forwardPropagation(xList, hList, fns, dfns, fPs):
+def forwardPropagation(xList, hList, fns, dfns, zpList):
     nH = len(xList) - 1
     for r in range(nH, -1, -1):
         #print(r)
@@ -103,11 +103,11 @@ def forwardPropagation(xList, hList, fns, dfns, fPs):
         
         AH = A * hList[r]
         
-        fPs[r] = dfns[r](AH)
+        zpList[r] = dfns[r](AH)
         if r > 0:
             xList[r-1] = fns[r](AH)
     yHat = fns[0](AH)  
-    return xList, fPs, yHat
+    return xList, zpList, yHat
 
 def testAcc(testData, hList, fns):
     
@@ -139,7 +139,7 @@ def getCVsample(D, sampleID, k, cvData):
 
 
     
-def gradComputerExample(hList, gList, xList, fPs, dEdyhat):
+def gradComputerExample(hList, gList, xList, zpList, dEdyhat):
     L = len(hList)
     s = dim(hList[0])[1]
     for r in range(L):
@@ -156,16 +156,16 @@ def gradComputerExample(hList, gList, xList, fPs, dEdyhat):
             for j in range(shape[1]):
                 E[i,j] = 1
             
-                dyhatdh = np.multiply( A*E, fPs[r])
+                dyhatdh = np.multiply( A*E, zpList[r])
                 for k in range(r-1,-1,-1):
-                    #dyhatdh = np.multiply(dyhatdh * hList[k][1:,:], fPs[k])
-                    dyhatdh = np.multiply(augment(dyhatdh, 0) * hList[k], fPs[k])
+                    #dyhatdh = np.multiply(dyhatdh * hList[k][1:,:], zpList[k])
+                    dyhatdh = np.multiply(augment(dyhatdh, 0) * hList[k], zpList[k])
                         
                 gList[r][i,j] = np.sum([dyhatdh[:,i].T*dEdyhat[:,i] for i in range(s)])
                 E[i,j] = 0
     return gList
 
-def gradComputerOne(hList, gList, xList, fPs, dEdyhat):
+def gradComputerOne(hList, gList, xList, zpList, dEdyhat):
     L = len(hList)
     r = 0
     s = dim(hList[0])[1]
@@ -180,19 +180,19 @@ def gradComputerOne(hList, gList, xList, fPs, dEdyhat):
         for j in range(shape[1]):
             E[i,j] = 1
         
-            dyhatdh = np.multiply( A*E, fPs[r])
+            dyhatdh = np.multiply( A*E, zpList[r])
             gList[r][i,j] = np.sum([dyhatdh[:,i].T*dEdyhat[:,i] for i in range(s)])
             E[i,j] = 0
     return gList
     
 def initialize(g, X, fns, dfns):
-    initialVars = namedtuple('variables','yHat xList hList gList fPs')    
+    initialVars = namedtuple('variables','yHat xList hList gList zpList')    
     ''' Includes bias units '''
     a = .1
     xList = []
     hList = []
     gList = []
-    fPs = []
+    zpList = []
     Xi = X
 
     ''' is the number of mappings between layers '''
@@ -216,14 +216,14 @@ def initialize(g, X, fns, dfns):
         AH = A * H
         Xi = fns[m-r-1](AH)
         
-        fPs.extend([ dfns[r](AH) ])
+        zpList.extend([ dfns[r](AH) ])
         
     xList = xList[::-1]    
     hList = hList[::-1]    
     gList = gList[::-1]    
-    fPs = fPs[::-1]   
+    zpList = zpList[::-1]   
      
-    initialList = initialVars(Xi, xList, hList, gList, fPs)    
+    initialList = initialVars(Xi, xList, hList, gList, zpList)    
     
     return initialList 
 
