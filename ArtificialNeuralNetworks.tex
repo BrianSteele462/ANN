@@ -1,0 +1,784 @@
+%\documentclass[a4paper,10pt]{article}
+\documentclass[graybox,envcountchap]{svmono}
+%\usepackage[ps2pdf,breaklinks]{hyperref} 
+
+\usepackage{xcolor}% http://ctan.org/pkg/xcolor
+\usepackage{hyperref}% http://ctan.org/pkg/hyperref
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!80!red,
+  urlcolor=green!70!black
+}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,array}
+\usepackage{color,verbatim}
+\usepackage{tikz,tkz-euclide,xcolor,graphicx}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{framed}
+\usepackage[leftcaption]{sidecap}
+\usepackage{nameref}[2012/07/31]
+\usepackage[toc,page,titletoc,title]{appendix}
+\usepackage{array,multirow}
+\usepackage{chngcntr}
+\counterwithout{figure}{section}
+\bibliographystyle{plain}
+
+\newcommand{\sigmaf}{\boldsymbol{\sigma}}
+\newcommand{\bbf}{\mathbf{b}}
+\newcommand{\Yf}{\mathbf{Y}}
+\newcommand{\Xf}{\mathbf{X}}
+\newcommand{\Wf}{\mathbf{W}}
+\newcommand{\Af}{\mathbf{A}}
+\newcommand{\Sf}{\mathbf{S}}
+\newcommand{\Tf}{\mathbf{T}}
+\newcommand{\hf}{\mathbf{h}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Hf}{\mathbf{H}}
+\newcommand{\bbe}{\mathbf{e}}
+\newcommand{\xf}{\mathbf{x}}
+\newcommand{\wf}{\mathbf{w}}
+\newcommand{\tf}{\mathbf{t}}
+\newcommand{\yf}{\mathbf{y}}
+\newcommand{\sff}{\mathbf{s}}
+\newcommand{\Zf}{\mathbf{Z}}
+\newcommand{\zf}{\mathbf{z}}
+\newcommand{\wff}{\mathbf{w}}
+\newcommand{\jf}{\mathbf{j}}
+\newcommand{\Jf}{\mathbf{J}}
+%\newcommand{\If}{\mathbf{I}}
+\newcommand{\alphaf}{\boldsymbol{\alpha}}
+\newcommand{\thetaf}{\boldsymbol{\theta}}
+\newcommand{\muf}{\boldsymbol{\mu}}
+\newcommand{\bef}{\boldsymbol{\beta}}
+\newcommand{\pif}{\boldsymbol{\pi}}
+\newcommand{\Expect}{\text{E}}
+\newcommand{\knn}{$k$-nearest-neighbor }
+\newcommand{\nn}{neural network}
+\newcommand{\Sef}{\boldsymbol{\Sigma}}
+\newcommand{\al}{\alpha}
+\newcommand{\be}{\beta}
+\newcommand{\va}{\varepsilon}
+\newcommand{\ta}{\theta}
+\newcommand{\w}{\widehat}
+\newcommand{\tx}{\texttt}
+
+\newcommand{\mylabel}[2]{#2\def\@currentlabel{#2}\label{#1}}
+
+\title{Predictive Analytics \\\vspace{.2 in } \Large Artificial Neural Networks\normalsize}
+
+\usepackage{authblk}
+
+\author[1]{M467/567 Notes }
+\bibliographystyle{plain}
+
+\renewcommand\Authands{ and }
+\date{\today}
+
+\begin{document}
+\setcounter{chapter}{0}
+ 
+
+
+\maketitle
+
+\chapter{Introduction}
+
+Artificial neural networks are predictive algorithms that differ from other predictive algorithms in several respects. First, the motivation for the algorithm stems from an attempt to replicate the neurological processes of animals. This motivation differs from the traditional approaches to prediction based on mathematical and statistical principles. The role of mathematics in artificial neural networks is largely secondary and focused on emulating the transfer of information between neurons. Some of the key tenets of statistical practice and theory are transgressed at every step.
+
+In particular, when \nn s are viewed from a statistical standpoint, the concept of parsimony is ignored.\footnote{The concept of parsimony is simple models are better than complex models if all else is the same.   }  The most remarkable accomplishments achieved with {\nn }s are those that involve extremely  large neural networks (say, with millions of coefficients) trained with massively large data sets.
+
+Artificial neural networks are generally opaque and mysterious to those that do not understand the underlying mathematical structure and how they are trained. However, they are not mysterious. In fact, after some study, they are straightforward.  Our objective is to gain a solid understanding of \nn s and thereby demystify \nn s.  We proceed by mathematically developing the foundation and then implementing the key ideas as \tx{Python} code.
+
+\section{The Biological Model}\label{section:bioModel}
+
+Consider a multicellular organism, say a rotifer, consisting of 1000 cells, 25\% of which comprise the sensory and nervous system.  Besides the sensor apparatus and the nervous system, the animal consists of little more than a  mouth, a gut, and a tail for propulsion. The brain primarily serves to identify prey and predators and we may suppose that a particular rotifer will survive by rapidly and accurately identifying other organisms as prey, predator, or neither. When the rotifer detects an organism in its field of view, impulses are sent from some of the sensory neurons to other neurons in the nervous system.  Most neurons are connected to multiple neurons in a multi-branched chain.  If specific neurons in the sensory apparatus send impulses through the system, then the rotifer may respond appropriately (feed or flight). The correct response is learned---a particular series of impulses passing through the system of neurons result in movements that are appropriate to the stimuli (prey or predator).  The rotifer's responses to visual stimuli improve over time as additional prey and predator confrontations take place.  The artificial {\nn } learning model emulates this hypothetical process, specifically, the process by which neurological pathways are strengthened by repetition. For example, an collection of sensory inputs similar to previous collections that led to prey capture are amplified by the neural network and the system becomes more sensitive at detecting prey.  The machine learning analog is a data set with many similar predictor vectors, many of which are associated with a similar realizations of the associated target variable. 
+The artificial {\nn } analog is a network of multivariate functions that map an input vector to output. The functions depend on a set of coefficients and the coefficients are determined by training the network on a data set. 
+
+\section{Artificial Neural Networks}
+
+An artificial {\nn } is a mathematical algorithm that has been translated to computer instructions. 
+It may be viewed as an elementary approximation of the learning process described in Section \ref{section:bioModel}.   
+Conceptually, a {\nn } will map an input vector\footnote{For example, the input vector $\xf_0$ might measure signal strength over a field of sensors.} to a set of neurons or \emph{nodes} in the network. Each node receives the input signal from all of the sensors and combines the signals as linear combination. The coefficients forming the linear combination vary among nodes.\footnote{The $i$th node may used coefficients collected in the vector $\hf_i$), for $i \in \{1,2,\ldots,q \}$} Each linear combination undergoes a transformation and is then mapped to another set of nodes the form a hidden layer.  Once again, the signals are combined as a linear combination at node (using different sets of coefficients) and each linear combination is transformed. The process may be repeated in some number of times before being mapped to a final prediction $\w{y}_0$  of the target. 
+
+Let's suppose that the objective is to map a $1 \times q$ input vector $\xf$  to a scalar prediction $\w{y}$. Mathematically, mapping $\xf$ to the hidden layer is accomplished by computing inner product between $\xf$ and the coefficient vectors $\hf_1^1, \ldots, \hf_q^1$. The strength of the signal received at the $i$th node depends on the coefficients of $\hf_i$ and $\xf$.  If $\xf$ is nearly orthogonal to $\hf_i^1$ then the signal will be small in magnitude. On the other hand, if $\xf$ and $\hf_i^1$ are aligned, then the signal will be large in magnitude.  
+Thus, the information carried by $\xf$ is translated to the inner products $\xf\hf_1^1,\ldots, \xf\hf_q^1$. Suppose that the inner products are collected as a $1 \times q$ row vector 
+\begin{equation*}
+ \xf^0 = [\xf\hf_1^1\ \cdots  \ \xf\hf_q^1] = \xf \Hf^1.
+\end{equation*}
+The final prediction by be computed as the inner product, say $\w{y} = {\xf^0} \mathbf{h}^0$. 
+
+In principle, the vectors  $\hf_1^0, \hf_1^1, \ldots, \hf_q^1$ are capable of detecting and amplifying specific patterns captured by $\xf$. An optimization algorithm and training set can then be used to produce a satisfactory prediction algorithm. Adding more \emph{layers} or nodes to the already described layers may improve the accuracy.  As described above, each layer takes the output of a preceding layer and maps it either to the output or another layer. For example, with two hidden layers, the input is mapped to output as follows:
+\begin{equation*}
+\begin{align}
+ \xf \rightarrow & \xf \Hf^2 = \xf^1\\
+  \xf^1 \rightarrow &{\xf^1} \Hf^1 = \xf^0\\
+   \xf^0 \rightarrow &{\xf^0} \Hf^0 = \w{y}.
+\end{align}
+\end{equation*}
+
+With a little effort, it can be shown that this {\nn } will produce the same  predictions as linear regression. On the one hand, it's nice to know that the artificial neural network is not unfamiliar, but on the other hand, nothing useful has accomplished with respect to the prediction objective. The key to moving forward is to apply nonlinear transformations at one or more layers. Therefore, we generalize the mapping of $\xf$ to output by introducing differentiable functions (denoted by the Greek letter zeta $\zeta$):
+\begin{equation*}
+\begin{align}
+ \xf \rightarrow & \zeta_2(\xf \Hf^2) = \xf^1\\
+  \xf^1 \rightarrow & \zeta_1({\xf^1} \Hf^1) = \xf^0\\
+   \xf^0 \rightarrow & \zeta_0({\xf^0} \Hf^0) = \w{y}.
+\end{align}
+\end{equation*}
+This set-up includes the last set of mapping since any one of the mappings above might be the identity mapping $\zeta(x) = x$.
+
+Fitting the {\nn } is an exercise in computing coefficient vectors $\mathbf{h}^0,\hf_1^1, \ldots, \hf_q^1$ that lead to accurate predictions.  The standard approach is taken: an objective function is identified that measures prediction error and depends on $\mathbf{h}^0,\hf_1^1, \ldots, \hf_q^1$.  Then, the objective function is minimized by the choice of $\mathbf{h}^0, \hf_1^1, \ldots, \hf_q^1$ when the {\nn }is applied to a training set of input vectors and target vectors.\footnote{We'll expand the {\nn } framework to handle target vectors.}
+\begin{comment}
+An example is the determination of tumor cell type (benign or malignant) based on measurements of cell morphology. The measurements on cell morphology comprise the input vector $\xf$.
+In general, more layers imply better  prediction, and so we distinguish between shallow (few  layers) and deep (many layers) \nn s. For example, if there were two hidden layers, then we need two sets of hidden layer coefficient vectors, say, $\{\hf^1_1, \ldots, \hf^1_{q} \}$, and $\{\hf^0_1, \ldots, \hf^0_{r}\}$. 
+
+As most of us are aware, digital data is being generated  at an astounding yet increasing velocity because of advances in instrumentation.\footnote{Instrumentation in this context encompasses the internet, the internet of things, smart phones, and digital cameras, and other devices.}  The opportunities for extracting useful information from data are expanding, but doing so is often very difficult. One solution is to increase computing power.  Massively large distributed computing networks are becoming more accessible and easier to use.\footnote{We refer to cloud-based computing. It's still challenging for the occasional user but given the competition between the Google, Amazon, and others to deliver cloud-based computing as a service, it's undoubtedly going to become easy.} Artificial \nn s, which are depend on large data set to work well,  will become more useful and more important, perhaps even dominant, in the near future. Our conjecture is supported by recent technological successes with autonomous cars, facial recognition systems, and machine-based language translation systems (all heavily dependent on artificial \nn s.)\footnote{One may debate whether these innovations are good, but even if you think not and want to fight against it, Luddite, you should know what you are up against. }
+
+The topic of artificial \nn s is approached herein from a mathematical perspective since mathematics is the foundation of \nn s. Ultimately, those that understand the artificial {\nn } from the foundations up will be best equipped to exploit \nn s.
+\end{comment}
+
+\section{Notation}
+
+Most, but not all, of what is presented in this section is review.\footnote{It's included here for future reference.} Matrices are denoted by boldface capitals (e.g., $\Xf$), vectors by boldface lowercase letters (e.g., $\xf$), and scalars by lowercase normal font letters (e.g., $y$).
+
+For the time being, target variables are assumed to be scalars. The neural net is trained on a set of $n$ observation pairs consisting of the target $y$ and the predictor vector $\xf$. The training set is thus 
+\begin{equation*}
+ D = \{(y_1,\xf_1),\ldots,(y_n,\xf_n) \}.
+\end{equation*}
+It's expedient to work with a matrix $\Xf$ consisting of the predictor vectors stacked as rows. This matrix is defined according to
+
+\begin{equation*}
+ \underset{n \times p}\Xf = \left[ 
+ \begin{array}{c}
+   \xf_{1 \cdot } \\
+ \vdots  \\
+\xf_{i \cdot} \\  
+ \vdots  \\
+ \xf_{n \cdot} \\  
+ \end{array}
+ \right],
+\end{equation*}
+where $\xf_{i \cdot}$ is the $i$th row of $\Xf$ and the predictor vector associated with the observed target $y_i$.  Often, we need to refer to the columns of the matrix, and so we use the notation 
+
+\begin{equation*}
+ \underset{n \times p}\Xf = \left[\xf_{\cdot 1} \ \cdots \ \xf_{\cdot j} \  \cdots \ \xf_{\cdot p} \right]
+\end{equation*} 
+to identify the columns of $\Xf$. The index $i$ usually is reserved to to identify rows of a matrix and $j$ usually is reserved to identify columns of a matrix. 
+
+For now, the objective is to predict a scalar $y$ using the concomitant predictor vector $\xf$.  The observed target values are collected as the vector 
+\begin{equation*}
+ \underset{n \times 1}\yf = \left[y_1 \ \cdots  \ y_n \right]^T.
+\end{equation*}
+A vector of predictions of $\yf$ is denoted as 
+\begin{equation}
+ \w{\yf} = \left[\w{y}_1 \ \ \cdots \ \ \w{y}_n \right]^T.
+\end{equation}
+
+The observed prediction errors are denoted as  $e_i = y_i - \w{y}_i, i=1,2,\ldots,n$. Errors  are collected in the vector $\mathbf{e} = \yf -  \w{\yf}$.  When the target variable is quantitative, the usual approach to computing the coefficient vector $\hf$ is to minimize the sum of the squared prediction errors.  In other words, $\hf$ minimizes 
+\begin{equation}\label{eq:sqrErrorLoss}
+ \varepsilon(\hf) = \sum_i (y_i - \xf_{i \cdot}\hf)^2 = \sum_i (y_i - \w{y}_i)^2 = \mathbf{e} ^T\mathbf{e} .
+\end{equation}
+Here, $\xf_{i \cdot}$ is the $i$th row of the matrix $\Xf$ and $\hf$ is a conformable column vector. By stacking the predictor vectors as  matrix of $n$ rows, the error vector can be written in matrix notation as $\mathbf{e} = \yf - \Xf\hf$. 
+
+It will be convenient to use the Hadamard product of two $n \times m$ matrices $\mathbf{A}$ and $\mathbf{B}$. The \emph{Hadamard product} $\mathbf{A} \odot \mathbf{B}$ is computed by element-wise multiplication.  Specifically, the Hadamard product of $\mathbf{A}$ and $\mathbf{B}$ is 
+\begin{equation}\label{eq:Hadamard}
+ \mathbf{A} \odot \mathbf{B} = 
+ \left[\begin{matrix}
+ a_{1,1}b_{1,1} & \cdots & a_{i,m}b_{i,m} \\
+ \vdots & \ddots & \vdots \\
+ a_{n,1}b_{n,1} & \cdots & a_{n,m}b_{n,m} \\
+ \end{matrix}\right].
+\end{equation}
+It should be clear that the $i,j$th element of   $\mathbf{A} \odot \mathbf{B}$ is $a_{i,j}b_{i,j}$. 
+
+As a point of clarification, we will denote the composition of functions $g$ and $f$ as $g \circ f$. Hence, 
+\begin{equation*}
+ g \circ f(x) = g(f(x)).
+\end{equation*}
+
+\subsection{Additional Instructional Materials}
+
+The reader may benefit from Andrew Ng's 12 lectures on the subject of \nn s  (\href{https://www.youtube.com/watch?v=PaMoZnMdffI&list=PLb5_yhcKYi-XBpsKR9GKl6PyvrcNa-Od5}{youtube}).
+
+\chapter{A Basic Neural Network}
+
+Suppose that the target of prediction $y_0 \in \mathbb{R}$ is quantitative. As usual, prediction is accomplished using a concomitant feature (or predictor) vector $\xf_0$ of length $q$. The prediction function is trained using a data set $D = \{(y_1,\xf_1),\ldots,(y_n,\xf_n)$.  The intent is to predict an unobserved target $y_0$ using the observed concomitant $\xf_0$ and an artificial {\nn } trained on $D$. 
+
+An example of a quantitative target variable is provided by a Kaggle data set consisting of measurements on a Parkinson's disease score, specifically, the unified Parkinson's disease rating scale (UPDRS). A Parkinson's disease score is used to assess the progression of the disease in a patient.\footnote{UPDRS is computed from a fairly large set of clinician- and patient-evaluated scores. } Measuring UPDRS is time-consuming and so we may pursue the objective of predicting UPDRS using a less-expensive set of measurements (primarily) on motor control (the ability to coordinate muscle movements). If the prediction function is sufficiently accurate, then UPDRS can be estimated from the less-expensive motor control variables.
+
+Let's first consider a linear prediction f unction (not necessarily a \nn).\footnote{Linear \nn s are treated here for instructional purposes, not because they are useful predictive algorithms.}   
+The term linear implies that the prediction of $y_0$ is a linear function of the $1 \times q$ predictor vector $\xf_0$, and therefore can be expressed as the inner product
+\begin{equation*}
+ \w{y} =\xf\hf,
+\end{equation*}
+where $\hf$ is a $q \times 1$  coefficient vector. The vector $\hf$ is computed by fitting the \nn{ using} the data set $D$. Usually $\xf$ will be augmented with a the integer 1, and so $\xf_0 = [1 \ \ x_{0,1} \ x_{0,2} \ \cdots \ \ x_{0,p}]$ (hence, $q = p+ 1$). 
+
+In \nn{ applications}, $\w{y}$ is not a linear function of $\xf$. If the {\nn  } consists of a single layer, then the prediction often is chosen to be a smooth function of $\xf$. A smooth function has continuous derivatives of all orders. If the smooth function is denoted by $f$, then, the prediction is 
+\begin{equation*}
+ \w{y} = f(\xf\hf). 
+\end{equation*}
+A commonly-used function for this purpose is the rectified linear unit defined by
+\begin{equation}\label{eq:rlu}
+ f(x) = 
+ \begin{cases}
+  0 & x \le 0\\
+  x & x > 0.\\
+ \end{cases}
+\end{equation}
+The  rectified linear unit vaguely resembles a neuron in the sense that the input signal must exceed a threshold for a signal to be output. 
+
+Functions used in this role are often called \emph{activation} functions as the functions simulate response of a biological neuron to a received signal.  (Activation implies that a discrete signal is sent from the receiving neuron to the next layer). Activation functions play a important role in fitting the {\nn } since they (usually) map values that are very large in magnitude back to the unit interval and thereby help the fitting algorithm converge to a solution.\footnote{The rectified linear unit does not map onto the unit interval and so it's not necessarily the best choice of activation functions.}
+
+Finally, the target is often chosen to be a vector $\yf$ of length $s> 1$ and the prediction is $\w{\yf} = f(\xf \mathbf{H} ) = [f(\xf \hf_1 ) \ \cdots \ f( \xf \hf_s )]$. For example, qualitative variables are handled by setting the target to be a one-hot vector identifying w hich category is associated with an observed predictor vector. In this situation, $\yf$ is of length $s$ where $s$ is the number of categories or levels of the qualitative variable.
+
+We begin by constructing a relatively simple but non-trivial artificial  \nn.  The process provides an exposure to the mathematics supporting \nn s and the opportunity to develop a programming structure that can be easily modified for training and analyzing more advanced \nn s. 
+
+The application of an artificial {\nn } for computing a prediction $\w{y}$ from an prediction vector $\xf$ is described as \emph{forward propagation}. The term forward propagation suggests a parallel between the input vector passing through the {\nn } and a stimulus to a system of neurons: the activation of a single or few neurons results in a signal that propagates through the system of neurons and is received by the central nervous system (e.g., a brain).
+
+\section{Forward Propagation}\label{section:forwardProp}
+
+The one-hidden layer \nn{ can} be expressed as the composition of two functions or mappings.  The first mapping sends an $1 \times p$ input vector $\xf$ to $q$ different outputs by multiplying $\xf$ by a $p \times q$ coefficient matrix $\Hf^0$. Then, each element of the $1 \times q$ vector $\xf\Hf^0$ is transformed by an activation function $\zeta_0:\mathbb{R} \rightarrow \mathbb{R}$. The transformation of the vector $\xf\Hf^0$ by $\zeta_0$ is accomplished element-wise:
+\begin{equation*}
+\zeta_0(\xf\Hf^0) = [\zeta_0(\xf\hf^0_{\cdot 1}) \ \cdots \ \zeta_0(\xf\hf^0_{\cdot p})].
+\end{equation*}
+A diagram of the {\nn } shows the transformation of $\xf$ to  $\zeta_0(\xf\Hf^0)$:
+\begin{equation*}
+\begin{aligned}
+ \underset{1 \times p}{\xf} &\longrightarrow \xf \underset{p \times q}{\Hf^0} 
+  = \underset{1 \times q}{\left[\xf\hf_{\cdot 1}^0 \ \cdots \ \xf\hf_{\cdot q}^0\right]}\\
+   &\longrightarrow  \left[\zeta_0(\xf\hf_{\cdot 1}^0) \ \cdots \ \zeta_0(\xf\hf_{\cdot q}^0)\right]= \underset{1 \times q}{\xf^0}.
+\end{aligned}
+\end{equation*}
+Notationally, we set $\zeta_0(\xf\Hf^0) ={\xf^0}$ since a second mapping is applied to the output of the first mapping.
+Often, the mapping $\xf \rightarrow \xf\hf^0_{\cdot j}$ is described as mapping $\xf$ to the $j$th node of the first layer---a notion that suggests each of $q$ sensory neurons are receiving the same $p$ input signals. The signal received by the $j$th neuron is $\zeta_0(\xf\hf^0_{\cdot j})$. The contribution of $x_i$ (the $i$th input signal) towards the combined signal $\zeta_0(\xf\hf_{\cdot j}^0)$ depends on the magnitude of both $x_i$ and $h_{i,j}^0$ and to a lesser extent, $\zeta_0$.
+
+The hidden layer output  $\xf_0 = \zeta_0(\xf\Hf^0)$ is mapped in a similar fashion to the {\nn } output according to
+\begin{equation*}
+\begin{aligned}
+ {\xf_0} &\longrightarrow \zeta_0(\underset{1 \times q}{\xf_0} \underset{q \times s}{\Hf^1} )
+  = \underset{1 \times s}{\w{\yf}}.
+\end{aligned}
+\end{equation*}
+
+When the target is quantitative, $\zeta_1$ is usually chosen to be the identity map and so we may write more simply 
+${\xf_0} \rightarrow {\xf_0} {\Hf^1} = \w{\yf} $.\footnote{If $\zeta$ is the identity map, then for all $x \in \mathbb{R}$, $\zeta(x) = x$.}  By setting $\Hf^0$ to have $s$ columns, the target output is a vector; often though the target is univariate. Consequently, the coefficient matrix $\Hf^1$ is a vector (in which case, $\Hf^1$ may be replaced  with $\hf^1$) and the output mapping may be expressed as ${\xf_0} \rightarrow \zeta_1({\xf_0\hf^1} ) = \w{y}$.
+
+We turn now to the difficult but not insurmountable problem of determining the coefficient matrices $\Hf^0$ and $\Hf^1$, a task accomplished by training (or fitting) the {\nn } using a set of training data. Usually, one of the columns of the predictor matrix $\Xf$ is a vector of ones, as would be expected in the context of linear regression. We say that the original set of predictors has been augmented by introducing the vector of ones, and, as a reminder, will replace $\Xf$ with $\mathbf{A}^0$.  We will augment all of the input matrices since doing so nearly always improves the predictive accuracy.  We use the notation 
+\begin{equation}
+ \Xf \longrightarrow [\mathbf{1} \ \xf_{\cdot 1} \ \cdots \ \xf_{\cdot q}] = \mathbf{A}^0
+\end{equation}
+to show that the input matrix $\Xf$ has been augmented. To avoid any new symbols, it's assumed that the input matrix to the first layer contains $p$ columns, one of which is $\mathbf{1}$.  The constant term may be thought of as a node that receives no input from the preceding layers. The term \emph{bias unit} is commonly used in the literature of \nn s to describe the introduction of a constant term. 
+
+
+The training set predictor vectors collected in the matrix $\Xf$ will be mapped to a prediction as follows:
+\begin{equation}\label{eq:2layerDiagram}
+ \begin{align}\Xf  \longrightarrow  \underset{n \times p}{\mathbf{A}^0} \longrightarrow & \zeta_0(\underset{n \times p}{\mathbf{A}} \underset{p \times q}{\Hf^0}) = \underset{n \times q}{\Xf^1}\\
+  \underset{n \times q}{\Xf^1} \longrightarrow \underset{n \times (q+1)}{\mathbf{A}^1} \longrightarrow & \zeta_1({\mathbf{A}^1}\underset{(q+1) \times s}{\Hf^1} )
+  = \underset{n \times s}{\w\Yf},\\
+ \end{align}
+\end{equation}
+As discussed above, the $i,j$th element of $ \zeta_1({\Xf^1}{\Hf^1})$ is $\zeta_1(\xf_{i \cdot} \hf^1_{\cdot j})$.
+
+If both activation functions are the identity mappings, then it can be shown that the {\nn } predictions will be the same as those obtained from a least squares prediction function (exercise \ref{problem:lsequivalence}) provided that the objective function used to fit the {\nn } is the sum of the squared prediction errors.\footnote{Whatever differences are observed between the least squares and {\nn } prediction functions are likely to be related to incompletely minimizing the objective function in the {\nn } fitting procedure.} This statement implies that the \emph{linear} {\nn } cannot out-perform the linear regression predictor because the {\nn } prediction is equivalent to the linear regression prediction. On the other hand, it's reassuring to note that the linear predictor, and hence, the \nn, is optimal in terms of minimizing the sum-of-squared errors objective function. If we are to improve on linear regression, then we must replace one or more of the identity activation functions with nonlinear activation functions.
+
+\section{Tutorial: Cross-validation Skeleton}
+
+The objective of this tutorial is to build the skeleton of a \tx{Python} program for fitting and assessing an artificial {\nn } using a training data set.  Since over-fitting is a pervasive problem when fitting {\nn }, the program is built to carry-out $k$-fold cross-validation accuracy assessment. We'll use a Kaggle data set related to predicting the severity of Parkinson's disease from a set of motor control measurement (discussed at the beginning of this chapter). We'll predict two measures of disease severity, \verb+motor_UPDRS+ and \verb+total_UPDRS+. Therefore, the target variable is a 2-element vector $\yf = [y_1 \ \ y_2]$.
+
+\begin{enumerate}
+ \item Download the supporting \tx{Python} functions from the GitHub site\footnote{\small \tx{https://github.com/scorbettUM/UMM462-data} \normalsize}: 
+ \begin{enumerate}
+  \item \tx{parkinsons}
+  \item \tx{getCVsample}
+  \item \tx{augment}
+  \item \tx{dim}
+ \end{enumerate}
+ 
+\item It's recommended that the downloaded \tx{Python} functions are saved in a single file, say, \tx{functions.py}.  Then, the functions may be imported when the program script executes. The functions can be imported using the  instruction \tx{from functions import *} assuming that \tx{functions.py} resides in the same directory as the program script. If \tx{functions.py} resides in a different directory, say, \tx{/home/PyFns} then you may import the functions after appending \tx{/home/PyFns} to the list of \tx{Python} paths, say \tx{sys.path.append('/home/PyFns')}.
+\item Read the data and extract $n$, the number of observations in the data set, the number of predictor variables $p$, and the length of the target vector ($s = 2$) corresponding to the variables \verb+motor_UPDRS+ and \verb+total_UPDRS+.
+ 
+\small 
+\begin{svgraybox}
+\begin{verbatim}
+path = '.../Data/parkinsons_updrs.csv'
+D = parkinsonsData(path)
+n, p = dim(D.X)
+n, s = dim(D.Y)
+print(n, p, s)
+\end{verbatim}
+\end{svgraybox}
+\normalsize
+
+\item Use the list \tx{g} to define the architecture for the {\nn }.  The list contains the number of nodes in each layer in the forward propagation order: input, hidden, and output. Therefore, first (leftmost) entry is the number of input variables ($p$) and the last entry is the number of target variables ($s$). Specify \tx{g} in anticipation of creating a {\nn } with one hidden layer consisting of $p$ nodes. Also set $k$, the number of folds to be used in cross-validation.  
+
+
+\small 
+\begin{svgraybox}
+\begin{verbatim}
+g = [p, p, s]
+K = 10
+\end{verbatim}
+\end{svgraybox}
+\normalsize
+
+\item Randomly assign each of the $n$ training observations to one of the $K$ groups. Each group is used as a test set in the cross-validation algorithm. Iterate, and use \tx{getCVsample} to build the training and test sets.
+
+\small 
+\begin{svgraybox}
+\begin{verbatim}
+sampleID = [random.choice(range(K)) for i in range(n)]
+for k in range(K):
+    F = getCVsample(D, sampleID, k, cvData)    
+\end{verbatim}
+\end{svgraybox}
+\normalsize
+
+The object \tx{F} has two attributes corresponding to the training and test samples. They are referenced by \tx{F.R} and \tx{F.E}, respectively. Both of these attributes have their own two attributes corresponding to the predictor matrix $\Xf$ and the target matrix $\Yf$. The training set matrices are referenced by \tx{F.R.X} and \tx{F.R.Y}, respectively. The test set variable \tx{F.E} has corresponding attributes. 
+
+\item On each iteration of the croos-validation \tx{for loop}, compute the least squares coefficient vector after augmenting $\Xf$ with a vector of ones.
+
+\small 
+\begin{svgraybox}
+\begin{verbatim}
+X = augment(F.R.X, 1)
+beta = np.linalg.solve(X.T*X, X.T*F.R.Y)   
+\end{verbatim}
+\end{svgraybox}
+\normalsize
+
+\item Compute a measure of accuracy.  First compute the prediction errors when the prediction function is applied to the test set. Then, compute the adjusted coefficient of determination using the test set errors (rather than the usual training set errors) for both target variables by passing the observed targets and the prediction errors to the function \tx{rSqr}: 
+
+\small 
+\begin{svgraybox}
+\begin{verbatim}
+E = F.E.Y - augment(F.E.X, 1)*beta
+rsq = rSqr(F.E.Y, E) 
+print('N train = ',dim(F.R.Y)[0], '\tn test = ',dim(F.E.Y)[0] ,
+      '\tLinear regression adj R2 (test) = ',rsq)
+\end{verbatim}
+\end{svgraybox}
+\normalsize
+
+\end{enumerate}
+
+We are ready to turn to building the {\nn }. Most of the effort involves the calculation of the coefficient matrices $\Hf^0,\Hf^1,\ldots$.
+
+\section{Fitting the Artificial Neural Net}\label{section:fittingLinearNN}
+
+The problem of determining an optimal or near-optimal set of coefficients for the {\nn } is one of the more difficult tasks related to building \nn s. In this section, we begin the process of determining one of the coefficient matrices so that the reader may appreciate the challenges and we may review some useful matrix differentiation techniques.
+
+We adopt the usual approach to fitting predictive algorithms and determine the coefficient matrices $\Hf^0$ and $\Hf^0$  by minimizing an objective function measuring the accuracy of the predictive function.  To simplify notation, let $H = \{\Hf^0, \Hf^1\}$ denote the set of coefficient matrices. Since the Parkinson's data set is being used as an example, the obvious objective function\footnote{The target variables are quantitative.} is the sum of the squared prediction errors
+\begin{equation}
+ \varepsilon(H) =  \sum_{i=1}^n \sum_{j=1}^s (y_{i,j} - \w{y}_{i,j})^2.
+\end{equation}
+We use the following notation for the vector of residuals and the sum of the prediction residuals associated with the $j$th target:
+\begin{equation}
+\begin{align}
+  \mathbf{r}_j &= \yf_{\cdot j} - \w{\yf}_{\cdot j}, \\
+    \text{and } \varepsilon_j(H) &= \mathbf{r}_j^T\mathbf{r}_j.
+\end{align}
+\end{equation}
+Hence, $\varepsilon(H) =   \sum_{j=1}^s\mathbf{r}_j^T\mathbf{r}_j$. The prediction errors associated with the $j$th target variable may be expressed as a function of the $j$th column of $\Hf^1$ since $\w{\Yf} = \zeta_1(\mathbf{A}^1\Hf^1) = [\zeta_1(\mathbf{A}^1\hf^1_{\cdot 1}) \ \cdots \ \zeta_1(\mathbf{A}^1\hf^1_{\cdot s})] = [\w{\yf}_{\cdot 1} \ \cdots \ \w{\yf}_{\cdot s}]$. Thus,
+\begin{equation}
+ \begin{align}
+ \varepsilon_j(H) &=  (\yf_{\cdot j} - \w{\yf}_{\cdot j})^T(\yf_{\cdot j} - \w{\yf}_{\cdot j}) \\
+&= (\yf_{\cdot j }  -\zeta_1[\mathbf{A}^1 \hf^1_{\cdot j }])^T(\yf_{\cdot j }  -\zeta_1[\mathbf{A}^1 \hf^1_{\cdot j }]).
+ \end{align}
+\end{equation}
+Note that $\mathbf{r}_j$ is the only residual vector that depends on the $j$th column  of $\Hf^1 = [\hf^1_{\cdot 1} \ \cdots \hf^1_{\cdot s}]$, and so we may ignore the other residual vectors when determining a best value for $\hf^1_{\cdot j}$.
+
+We'll will address the problem of determining the coefficient set $H$ one element at a time by minimizing the objective function with respect to $h^1_{i,j}$.    
+Admittedly, the problem can be addressed by working with the columns $\hf^1_{\cdot 1}, \hf^1_{\cdot 2}, \ldots, \hf^1_{\cdot s}$, but the element-wise approach extends to deep \nn s\footnote{A \emph{deep} {\nn } contains multiple hidden layers.} more easily.  
+In any case, we'll determine the coefficient vector $\hf^0_{\cdot j}$ by differentiating $\varepsilon_j(H) = \mathbf{r}_j^T\mathbf{r}_j$ with respect to $h^1_{i, j}$. In principle, the following steps would set the derivative to 0 and then we would solve for $h^1_{i, j}$, thereby obtaining an optimal coefficient (with respect to minimizing the sum of the square residuals). Thus, we attempt to solve
+\begin{equation}\label{eq:errors}
+ \begin{align}
+  0 &=  \dfrac{\text{d}\mathbf{r}_j^T\mathbf{r}_j}{\text{d} h^1_{i,j}} 
+  \end{align}
+ \end{equation}
+for $ h^1_{i,j}$.
+
+Equation (\ref{eq:errors}) resembles the objective function used to find the least squares estimator of $\bef$ but differs most importantly because the presences of activation functions in the \nn .
+In any case, the derivative is calculated using the chain rule:
+\begin{equation}\label{eq:firstExample}
+\dfrac{\text{d}\mathbf{r}_j^T\mathbf{r}_j}{\text{d} h^1_{i,j}}  = \underset{1 \times n}{\dfrac{\partial \w{\yf}_{\cdot j}^T}{\partial h^1_{i,j}}} 
+ \underset{n \times 1}{ \dfrac{\text{d} \mathbf{r}_j^T\mathbf{r}_j }{ \text{d}\w{\yf}_{\cdot j}} }
+ =-2\underset{1 \times n}{\dfrac{\partial \w{\yf}^T_{\cdot j}}{\partial h^1_{i,j}}} \underset{n \times 1}{\mathbf{r}_j}.
+\end{equation}
+Since $\w{\yf}_{\cdot j} = \zeta_1(\mathbf{A}^1 \hf^1_{\cdot j})$,
+\begin{equation}\label{eq:grad0}
+ \begin{align}{\dfrac{\partial \w{\yf}_{\cdot j}}{\partial h^1_{i,j}}}=&  \dfrac{\partial  \zeta_1\left( {\mathbf{A}^1}{\hf_{\cdot j}^1} \right)}{\partial h^1_{i,j}}\\
+ =&\dfrac{\partial  {\mathbf{A}^1}{\hf_{\cdot j}^1} }{\partial h^1_{i,j}} \odot  \zeta_1'\left( {\mathbf{A}^1}{\hf_{\cdot j}^1}\right),
+ \end{align}
+\end{equation}
+where $\mathbf{A} \odot \mathbf{B}$ denotes the Hadamard product of matrices $\mathbf{A}$ and $\mathbf{B}$.\footnote{Recall that the Hadamard product is computed by element-wise multiplication (see equation \ref{eq:Hadamard}).} Continuing the the calculation,
+\begin{equation}\label{eq:grad0cont}
+ \begin{align}
+ {\dfrac{\partial \w{\yf}_{\cdot j}}{\partial h^1_{i,j}}}=&\left( {\mathbf{A}^1}\dfrac{\partial  {\hf_{\cdot j}^1} }{\partial h^1_{i,j}}  \right)\odot  \zeta_1'\left( {\mathbf{A}^1}{\hf_{\cdot j}^1} \right)\\
+ =&\hspace{.05 in }( \underset{n \times q}{\mathbf{A}^1}\underset{q \times 1}{ \mathbf{e}_i }) \odot \underset{n \times q \hspace{.02 in}q \times 1}{ \zeta_0'\left( {\mathbf{A}^1}{\hf_{\cdot j}^0} \right)},
+ \end{align}
+\end{equation}
+where $\mathbf{e}_i$ is a vector of zeros aside from row $i$ which contains a 1. Note that multiplying a matrix on the right by $\mathbf{e}_i$ has the effect of extracting the $i$th column. Therefore, $\mathbf{A}^1\mathbf{e}_i = \mathbf{a}^0_{\cdot i }$ is the $i$th column of $\mathbf{A}^1$ and ${\partial \w{\yf}_{\cdot j}/\partial h^0_{i,j}}$ is 
+\begin{equation}
+ \begin{align}
+ {\dfrac{\partial \w{\yf}_{\cdot j}}{\partial h^1_{i,j}}}&= \underset{n \times 1} {\mathbf{a}^1_{\cdot i }}\odot \underset{n \times q \hspace{.02 in}q \times 1}{ \zeta_1'\left( {\mathbf{A}^1}{\hf_{\cdot j}^1 } \right)}\\
+ &= \left[
+  \begin{array}{c}
+   a^1_{1,i}\zeta_0'(\mathbf{a}^1_{1 \cdot}\hf^1_{\cdot j})\\
+   \vdots \\
+   a^1_{n ,i}\zeta_0'(\mathbf{a}^1_{n \cdot}\hf^1_{\cdot j})
+  \end{array}\right].
+ \end{align}
+\end{equation}
+Returning to the beginning of the calculation (equation \ref{eq:firstExample}),
+\begin{equation}\label{eq:dr}
+\dfrac{\text{d}\mathbf{r}_j^T\mathbf{r}_j}{ \text{d} h^1_{i, j}}  = -2\left[ {\xf^1_{\cdot i }\odot { \zeta_1'\left( {\Xf^1}{\hf_{\cdot j}^1} \right)}}\right]^T{(\yf_{\cdot j } -\w{\yf}_{\cdot j } )}.
+\end{equation}
+
+The next step in calculating the vector $\hf^1_{\cdot j}$ is to collect the derivatives with respect to the coefficients $h^1_{1,j}, h^1_{2,j}, \ldots, h^1_{q,j}$ as the \emph{gradient}
+\begin{equation}\label{eq:firstGrad}
+\begin{align}
+  \nabla \varepsilon_j(\hf_{\cdot j}^1) &= \dfrac{\partial \varepsilon_j(H)}{\partial \hf_{\cdot j}^1} \\
+  &= \dfrac{\partial\mathbf{r}_{\cdot j}^T \mathbf{r}_{\cdot j}}{\partial \hf_{\cdot j}^1}\\
+  &= -2\underset{q \times n}{\left[ {\Xf^1\odot { \zeta_1'\left( {\Xf^1}{\Hf^1} \right)}}\right]}^T
+  \underset{n \times 1}{(\yf_{\cdot j } -\w{\yf}_{\cdot j } )}.
+\end{align}
+\end{equation}
+The last step to determining $\hf^1_{\cdot j}$ sets $\nabla \varepsilon_j(\hf_{\cdot j}^1) = \mathbf{0}$ and attempts to solve the system for $\hf^1_{\cdot j}$. 
+However, arriving at an analytical solution for the vector $\hf^1_{\cdot j}$ is unlikely unless $\zeta_1$ is the identity mapping. A numerical algorithm will have to be employed. First, a few remarks are in order.
+
+We will have to find both  $\Hf^0$ and $\Hf^1$ to use the \nn { for} prediction.  Optimally, $H = \{\Hf^0,\Hf^1\}$ would be obtained by simultaneously finding values for $\Hf^0$ and $\Hf^1$ that  minimize $\varepsilon(H)$. Analytical (or closed-form) solutions  for a solution to related problems sometimes can be determined by differentiating the objective function  with respect to the estimand, setting the partial derivatives equal to $\boldsymbol{0}$, and solving for the estimand.\footnote{The most famous example is the least squares estimator of the of coefficient vector $\bef$ in linear regression.}  This strategy of finding a minimizing solution set is intractable for the problem at hand. A different, and very general approach is needed to handle the more complex {\nn }s to come.
+
+Newton's and related methods are commonly used for similar estimation problems  (most notably, maximum likelihood estimation) but these methods  require the second derivatives of $\varepsilon(H)$ with respect to  $\Hf^0$ and $\Hf^1$.  In the \nn{ situation}, the second derivatives are difficult to calculate and a common recourse is the cruder and slower  gradient descent algorithm as it does not require the second derivatives. The standard approach to {\nn } estimation uses gradient descent in an algorithm known as \emph{backpropagation}. The term {backpropagation} heuristically describes the process, but mathematically, the term is not terribly revealing. In essence, backpropagation is an algorithm that uses the chain rule to determine the gradients and gradient descent to compute the coefficients.
+
+
+\section{Gradient Descent}\label{section:gd}
+
+Gradient descent is a very simple iterative algorithm that often succeeds in finding the solution to a system of equations when an analytical solution cannot be determined. It is intended for use with a smooth function\footnote{A smooth function has continuous derivatives of all orders.}, so assume that $f:\mathbb{R} \rightarrow \mathbb{R}$ is a smooth  function. The objective is to find the minimizing value $x^*$ of $f$. 
+
+Let's consider the behavior of $f$ near $x^*$, and allow $\epsilon > 0$ to be a small real number.  Since $f(x^*)$ is the smallest value that $f$ can take on, 
+\begin{equation*}f(x^*-\epsilon) > f(x^*).\end{equation*}
+Furthermore, $f(x^*-\epsilon)$ will become smaller if $\epsilon$ becomes smaller (but remains positive).\footnote{This argument depends on $f$ being monotonic in a neighborhood about $x^*$.} Hence, the change in $f$, specifically, the derivative of $f$, evaluated at $x$ will be negative if $x < x^*$.  On the other hand, if $x =x^* + \epsilon $, then again $ f(x^*) < f(x^* + \epsilon) $ but now the derivative of $f$ at $x$ will be positive. For both cases, if $x$ is close but not equal to $x^*$, then an approximation of $x^*$ can be computed by taking a small step from $x$ in the \emph{opposite} direction indicated by the sign of the derivative $f'(x)$.  This is the idea of gradient descent---slowly step towards $x^*$ by incrementing $x$ by $-\gamma f'(x)$ where $f'(x)$ is the derivative of $f$ evaluated at $x$ and $\gamma$ is the step size (a small positive number). An iterative algorithm that computes $x^*$ using steepest descent computes the estimate of $x^*$ at step $s$ according to 
+\begin{equation*}
+ x_{(s+1)} = x_{(s)} - \gamma f'(x_{(s)}).
+\end{equation*}
+If $f$ is monotonic near $x^*$, then as $x_{(s)}$ approaches $x^*$, the derivative will tend to zero, and the adjustment $\gamma f'(x_{(s)})$ also will tend to zero. As $s$ increases, $x_{(s)} $ will be converge on $x^*$.
+
+Let's formally develop gradient descent for a multivariate function. Assume that $f:\mathbb{R}^m \rightarrow \mathbb{R}$ is differentiable everywhere. Then, the gradient of $f$ at $\xf_0$ is the vector of derivatives of $f$ with respect to each of the $m$ variables $x_1,x_2,\ldots,x_m$.\footnote{The gradient describes the rate of change of $f$ at $\xf_0$.  For example, if $f(\xf) = -2x_1^2 + x_2^2$, then $f$ changes with respect to both variables $x_1$ and $x_2$ comprising $\xf = [x_1 \ x_2]$. The rate of change of $f$ with respect to $x_1$ is $\partial f / \partial x_1 =  -4x_1$ and rate of change of $f$ with respect to $x_2$ is $\partial f / \partial x_2 = 2x_2$.  If $f$ has a minimum at $\xf_0$, then the rate of change of $f$ with respect to both variables is 0. The function $f(\xf) = -2x_1^2 + x_2^2$ has a minimum at the point $\xf_0 = (0,0)$.}   Therefore, gradient evaluated at $\xf_0$ is 
+\begin{equation*}
+ \nabla f(\xf_0) = \underset{m \times 1}{\dfrac{\partial f(\xf_0) }{ \partial \xf}} =\left[ 
+ \begin{align}
+  \dfrac{\text{d} f_1(x_{0,1})}{\text{d}x_1} \ \cdots \ \dfrac{\text{d} f_m(x_{0,m})}{\text{d}x_m}
+ \end{align}
+ \right]^T.
+\end{equation*}
+
+Suppose that $f$ has a minimum at $\xf^*$ and the objective is to determine $\xf^*$. Then, ${\partial f(\xf^*) }/{ \partial \xf} = \mathbf{0}$ and $\xf^*$ can be determined (in principle) by solving the following system for $\xf^*$:
+\begin{equation*}
+ \mathbf{0} = \nabla f(\xf^*)
+\end{equation*}
+Given $\xf_{(1)}$ near $\xf^*$, the gradient descent algorithm iteratively closes in on $\xf^*$ by moving along the gradient in small steps (so as to avoid overshooting $\xf^*$). 
+Since the aim is to obtain smaller values of $f$, the correct direction is $ - \nabla f(\xf_{(1)})$, and the updated value is $\xf_{(2)} = \xf_{(1)} - \gamma \nabla f(\xf_{(1)})$, where $\gamma$ is the step size. Given certain regularity conditions and appropriately chosen values for $\gamma$, the algorithm is guaranteed to converge to $\xf^*$ provided that are no local minimums to which the algorithm might converge to. 
+
+Supposing that there are $L$ layers, the fitting algorithm will iteratively update each of $m = L -1$ coefficient matrices. Using a single scalar step size is usually problematic for updating each coefficient $h^k_{i,j}$, and so a matrix of step sizes conformable with $\Hf^k$ is computed to avoid over-shooting the solution and to promote rapid convergence.     For each matrix $\Hf^k,k=0,1,\ldots,m-1$  a gradient matrix   $\nabla \varepsilon(\Hf^k)$ and a step size matrix $\mathbf{\Gamma}^k$ is computed. When iteration $s$ takes place, the updating formula is
+\begin{equation}
+\Hf^k_{(s+1)}  = \Hf^k_{(s)}   - \mathbf{\Gamma}_{(s)}^k \odot \nabla \varepsilon(\Hf^k_{(s)})  .
+\end{equation}
+Algorithmically, the scalar derivatives $ \nabla \varepsilon(h_{i,j}^k)$ are calculated and stored in the matrix $\nabla \varepsilon(\Hf^k)$ before computing the update. 
+
+There are a number of algorithms for computing step sizes and nearly all use $\nabla \varepsilon(\Hf^k_{(s)})$ since the terms comprising the matrix reflect how close the current iteration value is from the solution.
+Section \ref{section:stepsize} discusses step size in detail. The next tutorial assumes that the reader has available a function for computing step sizes (specifically, the RMSProp function).\footnote{\tx{Python} code for the function can be pulled from the \tx{github site.}}
+
+\section{Tutorial: A First Neural Network}
+
+In anticipation of building multi-layer, or deep \nn s, this tutorial begins with building a function that initializes several lists that contain the elements of the {\nn }. The lists and the quantities contained in each are identified in Table \ref{table:lists}. The contents of the lists are identified for a {\nn } with one hidden layer, and hence requiring two coefficient matrices (one from input to hidden and the second from hidden to output). 
+
+\begin{table}
+\caption{Lists and their contents assuming one hidden layer and hence, 3 layers in total. The subscript $s$ indexes iteration.}\label{table:lists} \centering
+ \begin{tabular}{r|l }
+  Name & Contents \\ \hline
+  \tx{xList} & $\Xf, \Xf^1_{(s)}$\\
+  \tx{yHat} &  $\w{\Yf}_{(s)} = \zeta_1(\Xf_{(s)}^1)$ \\
+  \tx{hList} & $\Hf^0_{(s)},\Hf^1_{(s)}$ \\
+  \tx{gList} & $\nabla \varepsilon (\Hf^0_{(s)}), \nabla \varepsilon(\Hf^1_{(s)})$ \\
+  \tx{zpList} & $\zeta_0'(\Xf_{(s)}^0), \zeta_1'(\Xf^1_{(s)})$
+ \end{tabular}
+\end{table}
+
+Several functions are to be programmed and are listed in Table \ref{table: functions}.
+
+\begin{table}
+\caption{Functions and their purpose.}\label{table:functions} \centering
+ \begin{tabular}{r|l }
+  Name & Contents \\ \hline
+  \tx{initialize} & Initializes lists containing the coefficient matrices, gradients, etc\\
+  \tx{fProp} & Computes the {\nn } predictions using forward propagation\\
+  \tx{gradComputerOne} &  Computes gradient assuming no hidden layers\\
+  \tx{RMSProp} & Implements the RMSProp algorithm for computing step sizes\\
+ \end{tabular}
+\end{table}
+
+\begin{enumerate}
+
+\item    The function \tx{initialize} creates lists for fitting and using the {\nn }.  It also initializes the coefficient matrices and the gradients. The function returns a \tx{namedtuple}. The arguments of the \tx{namedtuple} are lists; the length of all lists is $m$, the number of mappings between layers (and hence, one less than the number of layers $L$).  The code is shown below and the function is included in the \tx{Python} script \tx{functions.py}. The lists are filled in order from input to output. As diagram \ref{eq:2layerDiagram} indicates, the input matrix $\Xf^1$ is mapped to an intermediate matrix $\Xf^0$ and so these are stored in \tx{xList}. The coefficient matrices $\Hf^0$ and $\Hf^1$ are stored in \tx{hList}. The remaining lists store the gradients (\tx{gList}) and the matrices $\zeta_0'(\Xf^0), \ldots, \zeta_m'(\Xf^m)$ (\tx{zpList}). The matrix of predictions are stored in \tx{yHat}.
+
+\small 
+\begin{svgraybox}
+\begin{verbatim}
+def initialize(g, X, fns, dfns):
+    initialVars = namedtuple('variables','yHat xList hList gList zpList')    
+    ''' Includes bias units '''
+    a = .1
+    xList = []
+    hList = []
+    gList = []
+    zpList = []
+    Xi = X.copy()
+
+    ''' is the number of mappings between layers '''
+    m = len(g) - 1  
+    for r in range(m):
+        xList.extend([Xi])
+        
+        if r > 0:
+            shape = g[r] + 1, g[r+1]
+            A = augment(Xi,0)
+        else:
+            shape = g[r], g[r+1]
+            A = Xi
+        H = np.matrix(np.random.uniform(-a, a, shape ))
+        hList.extend([H])
+        
+        gList.extend([a * np.matrix(np.ones(shape))])
+        
+        AH = A * H
+        zpList.extend([ dfns[r](AH) ])
+        ''' Forward projection: '''
+        Xi = fns[r](AH)    
+    
+    initialList = initialVars(Xi, xList, hList, gList, zpList)    
+    
+    return initialList
+\end{verbatim}
+\end{svgraybox}
+\normalsize
+
+Note that if $r > 0 $, then $\mathbf{A}$ is augmented with a vector of ones on the left so that the each row in the resulting matrix contains the constant 1, just as does the input matrix in most regression procedures. To be consistent with the usual machine learning terminology, the constants are referred to as bias units. 
+
+ \item The activation function for {\nn } is the rectified linear unit (equation \ref{eq:rlu}). Create a function, say \tx{rlu}, according to equation (\ref{eq:rlu}). Also create a function that returns the derivative, say
+ 
+\small 
+\begin{svgraybox}
+\begin{verbatim}
+def rluP(x):
+    return int(x > 0) 
+\end{verbatim}
+\end{svgraybox}
+\normalsize
+
+\item The rectified linear unit will be used as activation function that maps the inputs to the second layer. The second activation function is the identity function (hence, $\zeta_1(x) = x$. Other activation functions may perform better than either the rectified linear unit or the identity map, and so the reader will program additional others.  In all cases, we need a function that will transform the \emph{elements} of a matrix using an activation function and also a function that transforms the elements of another matrix  by evaluating the derivative of the activation function at a point in $\mathbb{R}$.  It's expedient to create a class of activation functions that carry out the evaluations since a single code block can be used to apply the functions to the matrix elements. The following code sets up the activation function \emph{class}.
+
+
+\small 
+\begin{svgraybox}
+\begin{verbatim}
+class ActivationFunction(object):
+    def __init__(self, function, derivative):    
+        self.function = function
+        self.derivative = derivative
+    
+    def evaluate(self, X):
+        shape = np.shape(X)
+        A = np.matrix(np.zeros(shape))
+        for i in range(shape[0]):    
+            for j in range(shape[1]):  
+                A[i,j] = self.function(X[i,j])
+        return A
+            
+    def differentiate(self, X):
+        shape = np.shape(X)
+        A = np.matrix(np.zeros(shape))
+        for i in range(shape[0]):    
+            for j in range(shape[1]):  
+                A[i,j] = self.derivative(X[i,j])
+        return A
+\end{verbatim}
+\end{svgraybox}
+\normalsize
+
+The \tx{evaluate} function applies the activation function (named \tx{function}) above to all elements in a matrix $\mathbf{A}$, and similarly, \tx{differentiate} applies the derivative of the activation function to all elements of $\mathbf{A}$.
+
+A particular function (say, the rectified linear unit) is added to the class and used in the following code:
+
+
+\small 
+\begin{svgraybox}
+\begin{verbatim}
+f1 = ActivationFunction(rlu, rluP)   
+zeta = f1.evaluate(X)
+zetaPrime = f1.differentiate(X)
+\end{verbatim}
+\end{svgraybox}
+\normalsize
+
+Note that the argument passed the activation function (\tx{X}) must have a shape attribute and ought to be a \tx{Numpy} array or matrix.
+
+\end{enumerate}
+
+
+\section{Exercises}
+\begin{enumerate}
+ \item \label{problem:lsequivalence} Consider the {\nn } shown in equations \label{eq:2layerDiagram}, and suppose that $\zeta_1 = \zeta_2$ are the identity map (hence, $\zeta_1(x) = x$ for all $x \in \mathbb{R}$). 
+ \begin{enumerate}
+  \item Show that the {\nn } applied to $\Xf$ reduces to $\Xf \mathbf{b} = \w{\yf}$ where $\underset{p \times 1} {\bbf}=\underset{p \times g } {\Hf^1} \underset{ g \times 1}{\hf^0}$. 
+ \item Suppose that the objective function is $\sum_{i=1}^n(y_i - \w{y}_i)^2$.  Argue that the {\nn } prediction obtained from a predictor vector $\xf_0$ will be
+\begin{equation}\label{eq:ls}
+ \w{y}_0 = \xf_0 (\Xf^T\Xf)^{-1}\Xf^T\yf.
+\end{equation}
+ \end{enumerate}
+ 
+\item Return to equations (\ref{eq:firstGrad}).
+\begin{enumerate}
+ \item Show that 
+ \begin{equation}
+  \mathbf{0} = {\left[ {\Xf\odot { \zeta_0'\left( {\Xf^0}{\Hf^0} \right)}}\right]}^T
+  {(\yf_{\cdot j } -\w{\yf}_{\cdot j } )} = \left( \Wf \Xf  \right)^T{(\yf_{\cdot j } -\w{\yf}_{\cdot j } )},
+ \end{equation}
+ where $\Wf$ is a diagonal matrix. What is $\Wf$?
+ \item Now suppose that $\zeta_0:x \rightarrow x$. Solve $\mathbf{0} = \left( \Wf \Xf  \right)^T{(\yf_{\cdot j } -\w{\yf}_{\cdot j } )}$ for  $\hf_{\cdot j}^0$.
+
+\end{enumerate}
+ 
+\end{enumerate}
+
+
+\section{Appendix}
+
+\section{Matrix Differentiation}
+Suppose that $\xf$ is a $q$-length vector and $\yf = f(\xf)$ is a $p$-length vector.  The \emph{Jacobian} matrix of the map $f:\mathbb{R}^q \rightarrow\mathbb{R}^p$ is the matrix of partial derivatives 
+\begin{equation}
+\underset{p \times q} {\dfrac{ \partial \yf}{ \partial \xf^T}}  = \left[
+ \begin{array}{cccc}
+  \frac{\tx{d} y_1}{\tx{d}x_1} & \frac{\tx{d} y_1}{\tx{d}x_2} & \cdots & \frac{\tx{d} y_1}{\tx{d}x_q} \\
+  \frac{\tx{d} y_2}{\tx{d}x_1} & \frac{\tx{d} y_2}{\tx{d}x_2} & \cdots & \frac{\tx{d} y_2}{\tx{d}x_q} \\
+   \vdots &\vdots &  \ddots & \vdots \\
+  \frac{\tx{d} y_p}{\tx{d}x_1}& \frac{\tx{d} y_p}{\tx{d}x_2}  & \cdots & \frac{\tx{d} y_p}{\tx{d}x_q} \\
+ \end{array} \right].
+\end{equation}
+It's convenient to write the Jacobian as a matrix of columns
+\begin{equation}
+ \dfrac{ \partial \yf}{ \partial \xf^T}  = \left[
+ \begin{array}{cccc}
+  \underset{p \times 1}{\dfrac{\partial \yf }{\partial x_1}} & \underset{p \times 1}{\dfrac{\partial \yf}{\partial x_2}} & \cdots & \underset{p \times 1}{\dfrac{\partial \yf}{\partial x_q}} 
+ \end{array} \right]
+\end{equation}
+or a matrix of rows
+\begin{equation}
+ \dfrac{ \partial \yf}{ \partial \xf^T}  = \left[
+ \begin{array}{c}
+  \underset{1 \times q}{\dfrac{\partial y_{ 1}}{\partial \xf^T}} \\
+  \vdots \\
+  \underset{1 \times q}{\dfrac{\partial y_p}{\partial \xf^T} }\\
+ \end{array} \right]
+\end{equation}
+depending on the situation. 
+
+The first and simplest example is 
+\begin{equation*}\label{eq:dxdx}
+  \dfrac{\partial \xf}{\partial \xf^T} = \mathbf{I}_p.
+\end{equation*}
+
+\section{Some Useful Results}
+
+\begin{enumerate}
+\item Suppose that $\mathbf{A}$ is a $p \times q$ matrix of real numbers and $\yf = \mathbf{A}\xf$. Then $y_i = \mathbf{a}_{i\cdot} \xf$, where $\mathbf{a}_{i\cdot}$ is the $i$th row of $\mathbf{A}$.  If we use the fact that $y_i = \mathbf{a}_{i \cdot} \xf$ and 
+\begin{equation}
+\begin{align}
+ \dfrac{\partial  x_j}{\partial \xf^T} &= \underset{1 \times q}{\left[ \frac{\tx{d}x_j}{\tx{d}x_1} \ \cdots \frac{\tx{d}x_j}{\tx{d}x_j} \ \cdots \ \frac{\tx{d}x_j}{\tx{d}x_q}  \right]} \\
+ & = \left[0 \ \  \cdots \ 1 \ \ \cdots \ \ 0 \right],
+\end{align}
+\end{equation}
+where the 1 appears in column $j$, then it follows that 
+\begin{equation}
+ \begin{align}
+  \dfrac{\partial y_i}{\partial \xf^T} &= \dfrac{\partial \sum_j^q a_{i,j}x_j}{\partial \xf^T} \\
+   &= \sum_{j=1}^q a_{i,j}\underset{1 \times q}{\dfrac{\partial  x_j}{\partial \xf^T} } \\
+  &=  \left[a_{i,1} \ a_{i,2} \ \cdots \ a_{i,q}\right] = \mathbf{a}_{i \cdot }.
+ \end{align}
+\end{equation}
+Thus,
+\begin{equation}
+ \dfrac{\partial \mathbf{A} \xf }{\partial \xf^T} = 
+ \left[ \begin{array}{c} \dfrac{\partial \mathbf{a}_{1\cdot} \xf}{\partial \xf^T}  \\  \vdots \\ 
+ \dfrac{\partial \mathbf{a}_{p\cdot} \xf}{\partial \xf^T}  
+ \end{array} \right]  
+ = \left[ \begin{array}{c} \mathbf{a}_{1\cdot} \\ \mathbf{a}_{2\cdot} \\ \vdots \\\mathbf{a}_{p\cdot} 
+ \end{array} \right]  = \mathbf{A}.
+\end{equation}
+
+\item  Consider two multivariate functions $\zf(\cdot)$ and $\yf(\cdot)$ and suppose that   $f(\xf) = \zf(\xf)^T\yf(\xf) = \yf(\xf)^T\zf(\xf)$.  Let us determine the Jacobian of $f(\xf)$. First, note that  
+\begin{equation}
+ f(\xf) = \sum_{i=1}^p z_i(\xf)y_i(\xf).
+\end{equation}
+Using the product rule, the derivative of $f(\xf) $ with respect to $x_i$ is
+\begin{equation}
+\begin{align}
+ \dfrac{\tx{d} f(\xf)}{\tx{d} x_i} &= \dfrac{\tx{d} z_i(\xf)}{\tx{d} x_i}y_i(\xf) + \dfrac{\tx{d} y_i(\xf)}{\tx{d} x_i} z_i(\xf).
+\end{align}
+\end{equation}
+Hence, the vector of partial derivative can be expressed as
+\begin{equation}\label{eq:innerProductDeriv}
+\begin{align}
+\underset{p \times 1}{\dfrac{\partial f (\xf)}{\partial \xf}} &=
+ \underset{p \times p}{\dfrac{\partial \zf(\xf)}{\partial \xf}^T} \underset{p \times 1}{\yf(\xf)}
+ +\underset{p \times p}{\dfrac{\partial \yf(\xf)} {\partial \xf}^T} \underset{p \times 1}{\zf(\xf)}.
+\end{align}
+\end{equation}
+Now consider the quadratic form $f(\xf) = \xf^T\mathbf{A}\xf$ and it's Jacobian with respect to $\xf$. We'll apply equation (\ref{eq:innerProductDeriv}) by setting
+\begin{equation}
+ \begin{align}
+  \zf(\xf) &= \xf \\
+  \yf(\xf) &= \mathbf{A}\xf.
+ \end{align}
+\end{equation}
+Thus, $f(\xf) = \zf(\xf)^T\yf(\xf)$, and
+\begin{equation}
+\begin{align}\dfrac{\partial f (\xf)}{\partial \xf} &=\dfrac{\partial \zf(\xf)}{\partial \xf}^T \yf(\xf)
+ +  \dfrac{\partial \yf(\xf)}{\partial \xf}^T\zf(\xf)\\
+ & = \mathbf{I}_p \mathbf{A} \xf + \mathbf{A}^T\xf \\
+ & = \left(\mathbf{A}  + \mathbf{A}^T \right) \xf.
+\end{align}
+\end{equation}
+
+If $\mathbf{A}$ is symmetric, then 
+\begin{equation}
+\begin{align}
+  \dfrac{\partial \xf^T\mathbf{A}\xf}{\partial \xf}  & = 2\mathbf{A}  \xf.\\
+\end{align}
+\end{equation}
+
+\item Consider a $p \times q$ matrix that depends on $x$, say $\mathbf{A}(x)$. We define the Jacobian of $\mathbf{A}$ with respect to $x$ to be the matrix 
+\begin{equation}
+ \underset{p \times q}{\dfrac{\mathbf{A}(x) }{ \partial x}} = \underset{p \times q}{\left[ \frac{\tx{d} a_{i,j}(x)}{\tx{d}(x)}\right]}.
+\end{equation}
+\end{enumerate}
+
+\section{Example}
+The least squares objective function for a $p$-length parameter vector $\bef$ is 
+\begin{equation}
+ f(\bef) = \sum_{i=1}^n (y_i - \xf_i^T\bef)^2 ,
+\end{equation}
+where $\xf_i$ is a $p$-vector of predictors. In matrix form, the objective function is 
+\begin{equation}
+ f(\bef) =  (\yf - \Xf^T\bef)^T(\yf - \Xf^T\bef) ,
+\end{equation}
+where $\yf$ is an $n$-vector of observed target values and $ \Xf$ is $n \times p$ and constructed by stacking the $n$ predictor vectors as rows. The least squares estimator of $\bef$ is determined by differentiating $f(\bef)$ with respect to $\bef$, setting the vector of derivatives equal to $\mathbf{0}$, and solving for $\bef$.  We'll only compute the vector of partial derivatives at this time. We use the chain rule:
+\begin{equation}\label{eq:lsEstr}
+\begin{align}
+ \underset{p \times 1}{\dfrac{\partial f(\bef)}{\partial \bef}} &=  \underset{p \times n}{2\dfrac{\partial(\yf - \Xf^T\bef)}{\partial \bef^T} } \underset{n \times 1}{(\yf - \Xf^T\bef)}\\
+ & =\underset{p \times n}{-2 \Xf^T}\underset{n \times 1}{(\yf - \Xf^T\bef)},
+\end{align}
+\end{equation}
+since ${\partial(\yf - \Xf^T\bef)}/{\partial \bef^T} = - \Xf$.
+
+\end{document}
